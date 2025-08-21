@@ -7,4 +7,5 @@ gspread
 langgraph
 fastapi
 uvicorn
-python-dotenv
+pydantic
+pydantic-settings

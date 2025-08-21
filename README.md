@@ -32,7 +32,7 @@ pip install -r requirements.txt
 To start the web server, run the following command:
 
 ```bash
-uvicorn main:app --reload
+uvicorn src.api:app --reload
 ```
 
 The application will be available at `http://127.0.0.1:8000`.
