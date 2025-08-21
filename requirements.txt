@@ -1,0 +1,10 @@
+langchain-core
+langchain-google-genai
+typing_extensions
+ddgs
+alpha-vantage
+gspread
+langgraph
+fastapi
+uvicorn
+python-dotenv
