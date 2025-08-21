@@ -1,5 +1,4 @@
 import os
-import getpass
 import datetime
 from typing import Annotated
 
@@ -17,14 +16,6 @@ import gspread
 from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
 
-
-def _set_env(var: str):
-    if not os.environ.get(var):
-        os.environ[var] = getpass.getpass(f"{var}: ")
-
-
-_set_env("GOOGLE_API_KEY")
-_set_env("ALPHAVANTAGE_API_KEY")
 # Note: The GOOGLE_APPLICATION_CREDENTIALS should be set in the environment by the user.
 
 # LLM definition (moved to the top)
@@ -167,10 +158,7 @@ synthesis_prompt = PromptTemplate(
 # Node functions
 def chatbot_node(state):
     print("---CHATBOT---")
-    
-    # Check if the last message is from a tool
     if isinstance(state['messages'][-1], ToolMessage):
-        # Find the original user question
         original_question = ""
         for msg in reversed(state['messages']):
             if isinstance(msg, HumanMessage):
@@ -186,7 +174,6 @@ def chatbot_node(state):
         })
         return {"messages": [AIMessage(content=response)]}
     else:
-        # Default behavior for general conversation
         return {"messages": [llm.invoke(state["messages"])]}
 
 def search_node(state):
@@ -251,22 +238,9 @@ graph_builder.add_edge("query_google_sheet", "chatbot")
 
 graph = graph_builder.compile()
 
-def stream_graph_updates(user_input: str):
-    for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
-        for value in event.values():
-            print("Assistant:", value["messages"][-1].content)
-
-if __name__ == "__main__":
-    while True:
-        try:
-            user_input = input("User: ")
-            if user_input.lower() in ["quit", "exit", "q"]:
-                print("Goodbye!")
-                break
-            stream_graph_updates(user_input)
-        except Exception as e:
-            print(e)
-            user_input = "What do you know about LangGraph?"
-            print("User: " + user_input)
-            stream_graph_updates(user_input)
-            break
+def run_agent(user_input: str) -> str:
+    """
+    Runs the agent for a single query and returns the response.
+    """
+    response = graph.invoke({"messages": [HumanMessage(content=user_input)]})
+    return response['messages'][-1].content
