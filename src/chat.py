@@ -117,12 +117,15 @@ graph = graph_builder.compile()
 # --- Agent Interface ---
 
 def get_agent_response(user_input: str, current_state: dict) -> Tuple[str, dict]:
+
     """
     Runs the agent for a single query and returns the response and the updated state.
     """
     # Append the new user message to the existing messages in the state
+
     if 'messages' not in current_state:
         current_state['messages'] = []
+
     current_state['messages'].append(HumanMessage(content=user_input))
 
     # Invoke the graph with the updated state
