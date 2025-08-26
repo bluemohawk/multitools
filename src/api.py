@@ -21,7 +21,10 @@ async def query(request: QueryRequest) -> QueryResponse:
     session_id = request.session_id or uuid4()
 
     # Retrieve the conversation state or create a new one
-    current_state = conversation_states.get(session_id, State(messages=[], next=""))
+
+    current_state = conversation_states.get(session_id)
+    if current_state is None:
+        current_state = State(messages=[], next="")
 
     # Get the agent's response and the updated state
     response_text, updated_state = get_agent_response(request.query, current_state)
