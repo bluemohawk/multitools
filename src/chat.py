@@ -3,6 +3,7 @@ from typing import Tuple
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 from langgraph.graph import START, StateGraph
+from langgraph.checkpoint.memory import MemorySaver
 
 from src.llm import llm
 from src.models import Route, State
@@ -111,27 +112,30 @@ graph_builder.add_edge("get_stock_price", "chatbot")
 graph_builder.add_edge("get_current_time", "chatbot")
 graph_builder.add_edge("query_google_sheet", "chatbot")
 
-graph = graph_builder.compile()
+# The checkpointer is responsible for persisting the state of the graph.
+checkpointer = MemorySaver()
+
+graph = graph_builder.compile(checkpointer=checkpointer)
 
 
 # --- Agent Interface ---
 
-def get_agent_response(user_input: str, current_state: dict) -> Tuple[str, dict]:
-
+def get_agent_response(user_input: str, thread_id: str) -> str:
     """
-    Runs the agent for a single query and returns the response and the updated state.
+    Runs the agent for a single query and returns the response.
+    The checkpointer handles the conversation state.
     """
-    # Append the new user message to the existing messages in the state
+    configurable = {"thread_id": thread_id}
 
-    if 'messages' not in current_state:
-        current_state['messages'] = []
+    # The input to the graph is a list of messages.
+    # We pass in a single human message.
+    input_messages = [HumanMessage(content=user_input)]
 
-    current_state['messages'].append(HumanMessage(content=user_input))
+    # Invoke the graph and get the final state.
+    final_state = graph.invoke({"messages": input_messages}, config=configurable)
 
-    # Invoke the graph with the updated state
-    updated_state = graph.invoke(current_state)
+    # The final response is the last message in the list.
+    response_text = final_state['messages'][-1].content
 
-    # Extract the latest response from the messages
-    response_text = updated_state['messages'][-1].content
+    return response_text
 
-    return response_text, updated_state

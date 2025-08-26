@@ -16,20 +16,15 @@ conversation_states = {}
 async def query(request: QueryRequest) -> QueryResponse:
     """
     Receives a query, processes it through the agent, and returns the response.
-    Maintains conversation state using a session ID.
+
+    Maintains conversation state using a session ID, which is treated as the thread_id by LangGraph.
     """
+    # If a session_id is not provided, create a new one.
+    # This will be used as the thread_id for the conversation.
     session_id = request.session_id or uuid4()
 
-    # Retrieve the conversation state or create a new one
+    # Get the agent's response. The checkpointer handles state management.
+    response_text = get_agent_response(request.query, str(session_id))
 
-    current_state = conversation_states.get(session_id)
-    if current_state is None:
-        current_state = State(messages=[], next="")
-
-    # Get the agent's response and the updated state
-    response_text, updated_state = get_agent_response(request.query, current_state)
-
-    # Store the updated state
-    conversation_states[session_id] = updated_state
 
     return QueryResponse(response=response_text, session_id=session_id)
