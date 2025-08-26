@@ -6,13 +6,19 @@ from langgraph.graph.message import add_messages
 
 # --- API Models ---
 
+from typing import Optional
+from uuid import UUID, uuid4
+from pydantic import Field
+
 class QueryRequest(BaseModel):
     """Request model for the /query endpoint."""
     query: str
+    session_id: Optional[UUID] = None
 
 class QueryResponse(BaseModel):
     """Response model for the /query endpoint."""
     response: str
+    session_id: UUID
 
 # --- Agent Models ---
 
