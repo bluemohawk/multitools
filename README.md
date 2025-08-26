@@ -41,26 +41,46 @@ The application will be available at `http://127.0.0.1:8000`.
 
 ### POST /query
 
-You can send a POST request to the `/query` endpoint to interact with the agent.
+You can send a POST request to the `/query` endpoint to interact with the agent. The API now supports conversational memory. To maintain a conversation, you should capture the `session_id` from the first response and include it in all subsequent requests for that conversation.
 
 **Request Body:**
 
 ```json
 {
-  "query": "Your question here"
+  "query": "Your question here",
+  "session_id": "optional_uuid_string"
 }
 ```
+- `query` (string, required): The user's query for the agent.
+- `session_id` (string, optional): A UUID to identify the conversation. If omitted on the first request, a new session will be created and its ID returned in the response.
 
 **Example using curl:**
 
+**First request (starting a new conversation):**
 ```bash
-curl -X POST "http://127.0.0.1:8000/query" -H "Content-Type: application/json" -d '{"query": "What is the stock price of GOOG?"}'
+curl -X POST "http://127.0.0.1:8000/query" -H "Content-Type: application/json" -d '{"query": "My name is Jules."}'
+```
+
+**Example Response:**
+```json
+{
+  "response": "Hello, Jules! How can I help you today?",
+  "session_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+}
+```
+
+**Subsequent request (continuing the conversation):**
+```bash
+curl -X POST "http://127.0.0.1:8000/query" -H "Content-Type: application/json" -d '{"query": "What did I say my name was?", "session_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef"}'
 ```
 
 **Response Body:**
 
+The response will contain the agent's answer and the `session_id` for the current conversation.
+
 ```json
 {
-  "response": "The agent's response will be here."
+  "response": "You told me your name is Jules.",
+  "session_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef"
 }
 ```

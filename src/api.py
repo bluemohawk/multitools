@@ -1,3 +1,4 @@
+from uuid import uuid4
 from fastapi import FastAPI
 from src.models import QueryRequest, QueryResponse
 from src.chat import get_agent_response
@@ -12,6 +13,13 @@ app = FastAPI(
 async def query(request: QueryRequest) -> QueryResponse:
     """
     Receives a query, processes it through the agent, and returns the response.
+    Maintains conversation state using a session ID, which is treated as the thread_id by LangGraph.
     """
-    response_text = get_agent_response(request.query)
-    return QueryResponse(response=response_text)
+    # If a session_id is not provided, create a new one.
+    # This will be used as the thread_id for the conversation.
+    session_id = request.session_id or uuid4()
+
+    # Get the agent's response. The checkpointer handles state management.
+    response_text = get_agent_response(request.query, str(session_id))
+
+    return QueryResponse(response=response_text, session_id=session_id)
