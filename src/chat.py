@@ -138,3 +138,4 @@ def get_agent_response(user_input: str, thread_id: str) -> str:
     response_text = final_state['messages'][-1].content
 
     return response_text
+

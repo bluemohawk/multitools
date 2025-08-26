@@ -7,6 +7,10 @@ from uuid import UUID
 
 # --- API Models ---
 
+from typing import Optional
+from uuid import UUID, uuid4
+from pydantic import Field
+
 class QueryRequest(BaseModel):
     """Request model for the /query endpoint."""
     query: str
