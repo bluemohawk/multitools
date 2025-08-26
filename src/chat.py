@@ -228,9 +228,19 @@ graph = graph_builder.compile()
 
 # --- Agent Interface ---
 
-def get_agent_response(user_input: str) -> str:
+from typing import Tuple
+
+def get_agent_response(user_input: str, current_state: State) -> Tuple[str, State]:
     """
-    Runs the agent for a single query and returns the response.
+    Runs the agent for a single query and returns the response and the updated state.
     """
-    response = graph.invoke({"messages": [HumanMessage(content=user_input)]})
-    return response['messages'][-1].content
+    # Append the new user message to the existing messages in the state
+    current_state['messages'].append(HumanMessage(content=user_input))
+
+    # Invoke the graph with the updated state
+    updated_state = graph.invoke(current_state)
+
+    # Extract the latest response from the messages
+    response_text = updated_state['messages'][-1].content
+
+    return response_text, updated_state
