@@ -9,9 +9,6 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# In-memory storage for conversation states
-conversation_states = {}
-
 @app.post("/query", response_model=QueryResponse)
 async def query(request: QueryRequest) -> QueryResponse:
     """
